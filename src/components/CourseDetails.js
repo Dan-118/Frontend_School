@@ -18,6 +18,9 @@ const CourseDetails = () => {
   const [showLessonForm, setShowLessonForm] = useState(false);
   const [successMessage, setSuccessMessage] = useState(null);
 
+  console.log("Is instructor:", isInstructor);
+  console.log("Current lessons:", lessons);
+
   useEffect(() => {
     const fetchCourseAndLessons = async () => {
       setIsLoading(true);
@@ -32,8 +35,26 @@ const CourseDetails = () => {
           }
         );
         setCourse(courseResponse.data);
-        setLessons(courseResponse.data.lessons || []);
+
+        if (isInstructor) {
+          const instructorLessonsResponse = await axios.get(
+            `http://localhost:8000/api/courses/${courseId}/instructor_lessons/`,
+            {
+              headers: {
+                Authorization: `Bearer ${token}`,
+              },
+            }
+          );
+          console.log(
+            "Instructor lessons response:",
+            instructorLessonsResponse.data
+          );
+          setLessons(instructorLessonsResponse.data.lessons || []);
+        } else {
+          setLessons(courseResponse.data.lessons || []);
+        }
       } catch (error) {
+        console.error("Error fetching data:", error);
         setError(
           error.response?.data?.message || "Error fetching course details"
         );
@@ -43,7 +64,7 @@ const CourseDetails = () => {
     };
 
     fetchCourseAndLessons();
-  }, [courseId, token]);
+  }, [courseId, token, isInstructor]);
 
   const handleEnroll = async () => {
     try {
@@ -214,26 +235,40 @@ const CourseDetails = () => {
             )}
 
             {lessons.length > 0 ? (
-              <div className="space-y-2">
-                {lessons.map((lesson) => (
+              <div className="space-y-4">
+                <div className="grid grid-cols-4 gap-4 px-4 py-2 bg-gray-100 rounded-t-lg font-medium">
+                  <div>Title</div>
+                  <div>Duration</div>
+                  <div>Created</div>
+                  <div>Status</div>
+                </div>
+                {lessons.map((lesson, index) => (
                   <Link
                     key={lesson.id}
                     to={`/courses/${courseId}/lessons/${lesson.id}`}
-                    className="block bg-white rounded-lg border p-4 hover:shadow-md transition-shadow duration-200"
+                    className="grid grid-cols-4 gap-4 px-4 py-3 bg-white rounded-lg border hover:shadow-md transition-shadow duration-200 items-center"
                   >
-                    <div className="flex justify-between items-center">
-                      <h3 className="text-lg font-medium text-gray-900">
-                        {lesson.title}
-                      </h3>
-                      <div className="text-sm text-gray-500">
-                        {new Date(lesson.created_at).toLocaleDateString()}
-                      </div>
+                    <div className="font-medium text-blue-600">
+                      {index + 1}. {lesson.title}
+                    </div>
+                    <div className="text-gray-600">
+                      {lesson.duration || "N/A"} mins
+                    </div>
+                    <div className="text-gray-600">
+                      {new Date(lesson.created_at).toLocaleDateString()}
+                    </div>
+                    <div className="flex items-center">
+                      <span className="px-2 py-1 text-sm rounded-full bg-green-100 text-green-800">
+                        {lesson.status || "Available"}
+                      </span>
                     </div>
                   </Link>
                 ))}
               </div>
             ) : (
-              <p className="text-gray-500">No lessons available yet.</p>
+              <p className="text-gray-500 p-4 bg-gray-50 rounded-lg">
+                No lessons available yet.
+              </p>
             )}
           </div>
 

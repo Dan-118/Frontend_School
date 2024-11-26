@@ -63,8 +63,9 @@ const authSlice = createSlice({
       .addCase(login.fulfilled, (state, action) => {
         state.isLoading = false;
         state.token = action.payload.access;
-        state.user = action.payload.user;
         state.userType = action.payload.user_type;
+        state.user = { user_type: action.payload.user_type };
+        console.log("Auth state after login:", state);
       })
       .addCase(login.rejected, (state, action) => {
         state.isLoading = false;

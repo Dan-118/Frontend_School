@@ -12,6 +12,8 @@ import CourseList from "./components/CourseList";
 import CourseDetails from "./components/CourseDetails";
 import Navigation from "./components/Navigation";
 import LessonPage from "./components/LessonPage";
+import InstructorDashboard from "./components/InstructorDashboard";
+import CourseDetailsPage from "./components/dashboard/CourseDetailsPage";
 
 const PrivateRoute = ({ element: Element, ...rest }) => {
   const token = useSelector((state) => state.auth.token);
@@ -19,6 +21,13 @@ const PrivateRoute = ({ element: Element, ...rest }) => {
 };
 
 function App() {
+  const isInstructor = useSelector(
+    (state) => state.auth.userType === "instructor"
+  );
+
+  // Determine the default redirect path based on user type
+  const defaultRedirect = isInstructor ? "/instructor/dashboard" : "/courses";
+
   return (
     <Router>
       <div className="App">
@@ -38,7 +47,16 @@ function App() {
             path="/courses/:courseId/lessons/:lessonId"
             element={<PrivateRoute element={LessonPage} />}
           />
-          <Route path="*" element={<Navigate to="/courses" />} />
+          <Route
+            path="/instructor/dashboard"
+            element={<PrivateRoute element={InstructorDashboard} />}
+          />
+          <Route
+            path="/instructor/courses/:courseId"
+            element={<PrivateRoute element={CourseDetailsPage} />}
+          />
+          <Route path="/" element={<Navigate to={defaultRedirect} />} />
+          <Route path="*" element={<Navigate to={defaultRedirect} />} />
         </Routes>
       </div>
     </Router>

@@ -1,21 +1,31 @@
 // File: course-management-frontend/src/components/Login.js
-import React, { useState } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
-import { login } from '../store/authSlice';
-import { useNavigate } from 'react-router-dom';
+import React, { useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { login } from "../store/authSlice";
+import { useNavigate } from "react-router-dom";
 
 const Login = () => {
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { isLoading, error } = useSelector((state) => state.auth);
+  const isInstructor = useSelector(
+    (state) => state.auth.userType === "instructor"
+  );
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     const result = await dispatch(login({ username, password }));
+    console.log("Login result:", result);
     if (!result.error) {
-      navigate('/courses');
+      const userType = result.payload.user_type;
+      console.log("User type:", userType);
+      if (userType === "instructor") {
+        navigate("/instructor/dashboard");
+      } else {
+        navigate("/courses");
+      }
     }
   };
 
@@ -31,7 +41,9 @@ const Login = () => {
           <input type="hidden" name="remember" value="true" />
           <div className="rounded-md shadow-sm -space-y-px">
             <div>
-              <label htmlFor="username" className="sr-only">Username</label>
+              <label htmlFor="username" className="sr-only">
+                Username
+              </label>
               <input
                 id="username"
                 name="username"
@@ -44,7 +56,9 @@ const Login = () => {
               />
             </div>
             <div>
-              <label htmlFor="password" className="sr-only">Password</label>
+              <label htmlFor="password" className="sr-only">
+                Password
+              </label>
               <input
                 id="password"
                 name="password"
@@ -64,11 +78,13 @@ const Login = () => {
               className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
               disabled={isLoading}
             >
-              {isLoading ? 'Signing in...' : 'Sign in'}
+              {isLoading ? "Signing in..." : "Sign in"}
             </button>
           </div>
         </form>
-        {error && <p className="mt-2 text-center text-sm text-red-600">{error}</p>}
+        {error && (
+          <p className="mt-2 text-center text-sm text-red-600">{error}</p>
+        )}
       </div>
     </div>
   );
